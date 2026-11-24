@@ -145,23 +145,29 @@ Drawn from established research and philosophy:
 
 ## Pricing & AI cost
 
-- **Free tier:** discovery across all areas + deep coaching in **two areas of growth** of the user's choice. Runs on a cheaper AI model.
-- **Paid tier:** deep coaching in **all areas** (all launch coaches now; new coaches as they ship).
+- **Free tier:** discovery across all areas, vision picture, + deep coaching in **one area of growth** of the user's choice. Runs on a cheaper AI model.
+- **Paid tier — $14.99/month or $99/year:** deep coaching in **all areas** (all launch coaches now; new coaches as they ship). Annual plan is the promoted option.
+- **7-day free trial** of the full paid tier.
+- **Considering:** founding-member discount for early subscribers; a premium tier (~$24.99–29.99/mo) when live voice calls arrive in phase 2.
+- **Unit economics (to verify in prototype):** app stores take 15% (small-developer rate), so $14.99 nets ~$12.75; expected AI cost ~$1–3 per active user per month.
+- **Market reference (2026):** AI journals/wellness apps $8–15/mo (Reflection, Finch, Rosebud, Headspace, Mindsera, Calm); Noom ~$59–70/mo.
 - **Routine check-ins use a cheap model** for every tier; deeper conversations (onboarding, weekly review, "why didn't I?" digs) can use a stronger model.
 
 ## Decisions log
 
 - 2026-11-23 — Launch coaches: Body, Time & attention, Relationships.
 - 2026-11-23 — Relationships uses the habits-not-counseling model (resolves David/Ethan debate).
-- 2026-11-23 — Free = 2 areas on a cheaper model; paid = all areas. Cheap model for routine check-ins.
+- 2026-11-23 — Free = 2 areas on a cheaper model; paid = all areas. Cheap model for routine check-ins. _(Superseded below: free = 1 area.)_
 - 2026-11-23 — User controls check-in frequency.
 - 2026-11-23 — Check-in/reminder design, device-calendar reminders, security approach, vision picture and day-one value principle adopted.
 - 2026-11-23 — Agentic meta coach planned for phase 2, with phase 1 built on the same loop.
 - 2026-11-23 — MVP interview is adaptive with turn-based voice answers (no video). Live voice and coach calls are phase 2.
 
+- 2026-11-23 — Pricing: free = 1 area; paid = $14.99/month or $99/year, all areas.
+
 ## Open decisions
 
-- **Paid tier price.**
+- None right now.
 
 ## Next steps
 
