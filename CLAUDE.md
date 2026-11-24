@@ -7,7 +7,8 @@ Product spec: [docs/product-spec.md](docs/product-spec.md) — read it before pr
 ## Status
 
 - Mobile app; planned stack is Expo (React Native) + a backend for accounts, data and AI calls.
-- Spec drafted; no app code yet. Next: prototype the coach's instructions, then build the MVP.
+- Spec drafted; no app code yet.
+- Coach prototype: instructions in [src/coach/coach-instructions.md](src/coach/coach-instructions.md), two-week test plan in [docs/prototype-guide.md](docs/prototype-guide.md). Keep the instructions in sync with the spec's coaching rules (scope, safety, tone).
 
 ## Conventions
 
