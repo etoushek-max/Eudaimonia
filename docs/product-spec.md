@@ -143,6 +143,28 @@ Drawn from established research and philosophy:
 - **No dependency.** Success is measured by the person's life, not time in the app. Check-ins are short. The coach regularly points people toward real people. A coach that becomes someone's primary relationship has failed.
 - **Privacy is the trust model.** No ads, no selling data. Sensitive data encrypted.
 
+## Technology
+
+**Principle:** boring, proven technology for anything holding user data; newer tools only where they add clear value and can be swapped out.
+
+**Foundation**
+- **App:** Expo (React Native) for iOS and Android.
+- **Backend:** Postgres with vector search (pgvector), hosted on a managed platform such as Supabase — encryption, per-user access control, backups and simple "delete all my data."
+- **AI calls run on the server only;** API keys never ship in the app. A cheap model handles routine check-ins; a stronger model handles onboarding, weekly reviews and deeper conversations.
+
+**From Reuven Cohen's (ruvnet) open-source stack** — all MIT-licensed on npm:
+
+| Tool | What it does | How we use it | When |
+|---|---|---|---|
+| **dspy.ts** | Automatic prompt optimisation against examples and a quality score (TypeScript port of Stanford's DSPy) | Measure and improve coach quality; help the cheap model approach the strong model's quality (lowers AI cost). Pairs with simulated-user testing. Works on prompts, holds no user data. | Coach prototype |
+| **AgentDB / RuVector** | Vector memory that learns which memories were actually useful | Pilot as coach memory behind a swappable memory interface; adopt only if it recalls better than pgvector | Pilot during MVP build |
+| **Ruflo** | Coordinates AI coding agents (already installed on the dev machine) | Development tooling only, used selectively — not part of the app | Now, as needed |
+| **MidStream** | Analyses an AI reply while it's still streaming | Possible safety gate for live voice calls (catch crisis language mid-reply) | Evaluate in phase 2 |
+
+**Not using:** agentic-flow (model switching is a few lines of our own code), SAFLA (Python; overlaps AgentDB), RuView (WiFi presence/vital-sign sensing — not relevant and too invasive for a privacy-first app).
+
+**Caution:** the ruvnet projects move very fast (often several releases a week) and are largely single-maintainer. Before adopting any in production: pin exact versions, review the code, and keep it behind an interface we control.
+
 ## Pricing & AI cost
 
 - **Free tier:** discovery across all areas, vision picture, + deep coaching in **one area of growth** of the user's choice. Runs on a cheaper AI model.
@@ -164,6 +186,7 @@ Drawn from established research and philosophy:
 - 2026-11-23 — MVP interview is adaptive with turn-based voice answers (no video). Live voice and coach calls are phase 2.
 
 - 2026-11-23 — Pricing: free = 1 area; paid = $14.99/month or $99/year, all areas.
+- 2026-11-24 — Technology: Postgres/pgvector foundation; dspy.ts for coach quality; AgentDB/RuVector piloted as swappable memory; Ruflo for dev only; MidStream evaluated in phase 2.
 
 ## Open decisions
 
