@@ -6,8 +6,9 @@ Product spec: [docs/product-spec.md](docs/product-spec.md) — read it before pr
 
 ## Status
 
-- Mobile app; planned stack is Expo (React Native) + a backend for accounts, data and AI calls.
-- Spec drafted; no app code yet.
+- Prototype app built: Expo (React Native, SDK 58, Expo Router). The AI is called only from the server route `src/app/api/coach+api.ts` → `src/server/coach.ts` (API key in `.env`, never in app code). For now it uses a free Gemini key (`src/server/gemini.ts`); Claude is used when only `ANTHROPIC_API_KEY` is set. Data is on-device (AsyncStorage). How to run: [docs/running-the-app.md](docs/running-the-app.md).
+- Before writing Expo code, follow [AGENTS.md](AGENTS.md) (check versioned Expo docs; use `npx expo install`).
+- Tests: `npx tsx tests/profile.test.ts`. Typecheck: `npx tsc --noEmit`. Lint: `npx expo lint`.
 - Coach prototype: instructions in [src/coach/coach-instructions.md](src/coach/coach-instructions.md), two-week test plan in [docs/prototype-guide.md](docs/prototype-guide.md). Keep the instructions in sync with the spec's coaching rules (scope, safety, tone).
 
 ## Conventions
