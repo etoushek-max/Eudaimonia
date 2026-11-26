@@ -1,6 +1,6 @@
 // Server-only: talks to the Gemini API (Google AI Studio key). Temporary stand-in for Claude
 // while prototyping on the free tier. Never import this from app screens.
-import { FinishReason, GoogleGenAI, type Content } from '@google/genai';
+import { ApiError, FinishReason, GoogleGenAI, type Content } from '@google/genai';
 
 import { messageText } from '@/lib/profile';
 import type { ChatMessage } from '@/lib/types';
@@ -31,12 +31,23 @@ export async function runGemini(opts: {
   system: string;
   messages: ChatMessage[];
 }): Promise<{ text: string; model: string; blocked: boolean }> {
-  const model = opts.deep ? DEEP_MODEL : ROUTINE_MODEL;
-  const response = await getClient().models.generateContent({
-    model,
-    contents: toContents(opts.messages),
-    config: { systemInstruction: opts.system, maxOutputTokens: 16000 },
-  });
+  let model = opts.deep ? DEEP_MODEL : ROUTINE_MODEL;
+  const request = (m: string) =>
+    getClient().models.generateContent({
+      model: m,
+      contents: toContents(opts.messages),
+      config: { systemInstruction: opts.system, maxOutputTokens: 16000 },
+    });
+  let response;
+  try {
+    response = await request(model);
+  } catch (error) {
+    // Free-tier models are often overloaded (503). Fall back to the lighter model once.
+    if (!(error instanceof ApiError) || error.status !== 503 || model === ROUTINE_MODEL) throw error;
+    console.warn(`${model} overloaded; falling back to ${ROUTINE_MODEL}`);
+    model = ROUTINE_MODEL;
+    response = await request(model);
+  }
 
   const finish = response.candidates?.[0]?.finishReason;
   const blocked =

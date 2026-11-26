@@ -1,5 +1,7 @@
 import type Anthropic from '@anthropic-ai/sdk';
 
+import type { LifeMap } from './life-map';
+
 export type Area = 'Body' | 'Time & attention' | 'Relationships' | 'Other';
 export const AREAS: readonly Area[] = ['Body', 'Time & attention', 'Relationships', 'Other'];
 
@@ -32,6 +34,8 @@ export interface AppData {
   coachThread: ChatMessage[];
   /** One short check-in conversation per day. */
   checkins: Record<string, ChatMessage[]>;
+  /** Every life map taken, oldest first; the last one is current. */
+  lifeMaps: LifeMap[];
 }
 
 export const EMPTY_DATA: AppData = {
@@ -41,4 +45,5 @@ export const EMPTY_DATA: AppData = {
   log: {},
   coachThread: [],
   checkins: {},
+  lifeMaps: [],
 };

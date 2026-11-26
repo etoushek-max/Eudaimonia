@@ -2,6 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 
 import { dateKey } from '@/lib/dates';
+import type { LifeMap } from '@/lib/life-map';
 import { parseHabits } from '@/lib/profile';
 import { EMPTY_DATA, type AppData, type ChatMessage, type Habit, type LogStatus } from '@/lib/types';
 
@@ -16,6 +17,7 @@ interface Store {
   setStatus: (habitId: string, status: LogStatus | null, day?: string) => void;
   setCoachThread: (messages: ChatMessage[]) => void;
   setCheckin: (day: string, messages: ChatMessage[]) => void;
+  addLifeMap: (map: LifeMap) => void;
   resetAll: () => void;
 }
 
@@ -81,11 +83,12 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     (day: string, messages: ChatMessage[]) => setData((d) => ({ ...d, checkins: { ...d.checkins, [day]: messages } })),
     [],
   );
+  const addLifeMap = useCallback((map: LifeMap) => setData((d) => ({ ...d, lifeMaps: [...d.lifeMaps, map] })), []);
   const resetAll = useCallback(() => setData(EMPTY_DATA), []);
 
   const value = useMemo(
-    () => ({ data, loaded, saveProfile, addHabit, removeHabit, setStatus, setCoachThread, setCheckin, resetAll }),
-    [data, loaded, saveProfile, addHabit, removeHabit, setStatus, setCoachThread, setCheckin, resetAll],
+    () => ({ data, loaded, saveProfile, addHabit, removeHabit, setStatus, setCoachThread, setCheckin, addLifeMap, resetAll }),
+    [data, loaded, saveProfile, addHabit, removeHabit, setStatus, setCoachThread, setCheckin, addLifeMap, resetAll],
   );
 
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>;

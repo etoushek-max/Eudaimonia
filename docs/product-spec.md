@@ -1,6 +1,6 @@
 # Eudaimonia — Product Spec (v0.1, draft)
 
-_Owners: David, Ethan · Last updated: 2026-11-23_
+_Owners: David, Ethan · Last updated: 2026-11-25_
 
 ## Vision
 
@@ -38,7 +38,7 @@ Life areas (long-term roadmap):
 
 **Approach:** full meta coach from day one, but only one or two area coaches go deep.
 
-- **Discovery covers every area.** Onboarding conversation produces a written personal vision across all life areas.
+- **Discovery covers every area — assess everything, coach a few.** The life map (below) asks about all 11 areas, so the coach knows the whole person and where help is wanted, even in areas it doesn't coach yet. The onboarding conversation then produces a written personal vision.
 - **Deep coaching at launch:** **Body**, **Time & attention**, and **Relationships** (habits model — see below). These get habits, check-ins, tracking and accountability.
 - **Relationships scope:** relationship *habits* are in (call a friend weekly, host a dinner, family time). Relationship *counseling* is out (breakups, conflict mediation, abuse → referral to human professionals and crisis lines).
 - **Other areas:** the coach can discuss them generally; full coaching marked "coming soon."
@@ -46,6 +46,7 @@ Life areas (long-term roadmap):
 
 ### MVP features
 
+- **Life map first** (see below): a visual, 2-minute start before any chat — rate each life area, pick where you want change, say why now
 - Onboarding interview → personal vision document (editable) + vision picture (see below)
   - **Adaptive, like a first session with a therapist or coach** — not a static intake form. The AI follows a guide of life areas to cover, but asks follow-up questions based on each answer to dig deeper.
   - **Voice answers (no video).** Each turn, the user can type or record their answer; it's transcribed and they can correct the text before sending. Questions can optionally be read aloud. Turn-based, not live conversation.
@@ -54,7 +55,7 @@ Life areas (long-term roadmap):
 - Coach chat with memory of the vision, goals, habits and history
 - Weekly review: what went well, what didn't, what to adjust
 - User-chosen coach tone (gentle ↔ tough)
-- Periodic well-being check (based on Ryff's psychological well-being scale) to show progress beyond streaks
+- Periodic well-being check (based on Ryff's psychological well-being scale) and life map retakes to show progress beyond streaks
 
 ### Not in MVP
 
@@ -66,6 +67,46 @@ Principle: anyone who spends time on the interview must get a lot back immediate
 
 - **Short first interview** (~10 min, 2–3 areas) that already delivers the payoff; later conversations deepen it.
 - At the end they receive: **their vision picture**, **a written vision in their own words**, **one insight they didn't expect** ("you mentioned your kids in every area"), and **1–2 tiny first habits** ready for tomorrow.
+
+## Not just a chatbot
+
+Feedback from the first prototype test (David, 2026-11-25): onboarding felt like any free AI chat. People won't pay for what ChatGPT, Gemini or Claude give them for free. What makes Eudaimonia different, and must be visible from the first minute:
+
+- **Less typing, more doing.** Visual and tap-based steps (life map, pickers, quick replies) wherever a structured answer works; typing only where their own words matter.
+- **They leave with things, not just advice.** After the first session: life map, written vision, vision picture, and habits already in their calendar.
+- **It remembers and comes back.** The coach holds the vision and history, checks in, notices patterns, and re-measures the life map so change is visible over time.
+- **Visible expertise.** Every area coach works from named, leading frameworks and says so in plain words ("this is a Gottman technique"), so users can see the method behind the advice.
+
+## Life map
+
+The visual first step of onboarding, based on the coaching "Wheel of Life" and the domains of the Harvard Human Flourishing measure (VanderWeele).
+
+1. **Rate every area 1–10** for how satisfied they are now. A wheel fills in as they tap, so they see their life at a glance.
+2. **Pick up to 3 areas** where they most want change.
+3. **"What made you download Eudaimonia today?"** — the real reason they're here, in their words.
+
+The coach receives the map and opens the first session from it (reflecting one pattern, then going deep on their chosen areas) instead of asking generic questions. Areas we don't coach yet are still known, so the coach can keep them in view or point to other help.
+
+**Re-measure:** the user can retake the life map any time (prompted roughly monthly). The wheel shows the previous map as an outline, and the coach reflects on what changed. This is a progress measure beyond streaks, alongside the periodic well-being check.
+
+## Area playbooks
+
+Each area coach is a **playbook**: a file with the leading frameworks for that area, its interview questions, its go-to techniques and habits, and its limits (when to refer out). The meta coach loads only the playbooks for the user's focus areas. Adding an area = writing and testing a playbook, not rebuilding the app.
+
+**Core method (every area):** Motivational Interviewing (Miller & Rollnick) for how the coach talks; Self-Determination Theory (Deci & Ryan) for autonomy and motivation; WOOP (Oettingen) and implementation intentions (Gollwitzer) for plans; Tiny Habits (Fogg) and *Atomic Habits* (Clear) for habit design; self-compassion (Neff) for setbacks.
+
+| Area | Leading frameworks | Limits | Status |
+|---|---|---|---|
+| Body | Physical activity guidelines (WHO/ACSM), progressive overload; Precision Nutrition coaching method; CBT-I sleep principles | No calorie targets or weight-loss regimes; medical and disordered-eating referral | Launch |
+| Time & attention | Cal Newport (*Deep Work*, *Digital Minimalism*); Oliver Burkeman (*Four Thousand Weeks*); Nir Eyal (*Indistractable*) | No moralising; addiction signs → professional help | Launch |
+| Relationships | Gottman Institute research (bids, 5:1 ratio, rituals of connection); attachment theory; Nonviolent Communication (Rosenberg) | Habits, not counselling; abuse → crisis protocol | Launch |
+| Mental health | Positive psychology (Seligman, PERMA); behavioural activation; ACT (Hayes) | Coaching for well-being, never therapy or diagnosis | Roadmap |
+| Career | *Designing Your Life* (Burnett & Evans); *So Good They Can't Ignore You* (Newport); career capital (80,000 Hours) | — | Roadmap |
+| Money | Conscious spending (Ramit Sethi); Bogleheads principles; behavioural finance | Education and habits only — never personal investment advice | Roadmap |
+| Purpose & spirituality | Aristotle and the Stoics; values work (ACT); Frankl | Respect all beliefs; no religious direction | Roadmap |
+| Other areas | Playbooks written as each area is added | — | Roadmap |
+
+**Quality:** each playbook gets a small test set of example conversations, used to check the coach actually applies its frameworks rather than generic advice (dspy.ts, see Technology). Before launch, have the playbooks reviewed by practising coaches in each area.
 
 ## Vision picture
 
@@ -187,6 +228,8 @@ Drawn from established research and philosophy:
 
 - 2026-11-23 — Pricing: free = 1 area; paid = $14.99/month or $99/year, all areas.
 - 2026-11-24 — Technology: Postgres/pgvector foundation; dspy.ts for coach quality; AgentDB/RuVector piloted as swappable memory; Ruflo for dev only; MidStream evaluated in phase 2.
+- 2026-11-25 — Prototype coach temporarily runs on a free Gemini key (Google AI Studio); Claude when a Claude key is set. Free tier: test with made-up details only.
+- 2026-11-25 — "Not just a chatbot" principle, visual life map onboarding (assess all areas, coach a few) and evidence-based area playbooks adopted (David's prototype feedback).
 
 ## Open decisions
 
@@ -196,4 +239,5 @@ Drawn from established research and philosophy:
 
 1. Agree on this spec (resolve open decisions).
 2. Prototype the coach: write the coach's instructions; David and Ethan use it daily for two weeks before building the app.
-3. Build the MVP app: Expo (React Native) mobile app + backend for accounts, data and AI calls (API keys stay on the server).
+3. Have practising coaches review each area playbook.
+4. Build the MVP app: Expo (React Native) mobile app + backend for accounts, data and AI calls (API keys stay on the server).

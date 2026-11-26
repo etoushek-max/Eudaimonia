@@ -26,8 +26,10 @@ Restart the server after changing `.env`.
 | AI connection | `src/server/coach.ts`, `src/server/gemini.ts` | Builds the request: coach instructions (`src/coach/coach-instructions.md`) + app rules + today's context. With a Gemini key: `gemini-3.8-flash`, and `gemini-3.5-flash-lite` for check-ins (override with `GEMINI_MODEL` / `GEMINI_CHECKIN_MODEL`). With a Claude key: Claude Opus 5.5, and Claude Haiku 5.5 for check-ins. |
 | Today | `src/app/index.tsx` | Today's habits, done / not today, add a habit, add habits to calendar. |
 | Coach | `src/app/coach.tsx` | Chat with the coach, plus a short daily check-in thread. Voice answers via the keyboard's microphone. |
+| Life map | `src/components/life-map.tsx`, `src/lib/life-map.ts` | First step of onboarding: rate all 11 life areas 1–10 (wheel fills in), pick up to 3 focus areas, say why now. Retake from the Vision tab; the old map shows as a dashed line. |
+| Area playbooks | `src/coach/playbooks/*.md` | Leading frameworks, questions, habits and limits per coached area. The server loads the ones for the user's focus areas. |
 | Progress | `src/app/progress.tsx` | Vision panels that gain colour as habits are done (never fades), 14-day history per habit, weekly review. |
-| Vision | `src/app/vision.tsx` | The saved Vision Profile; delete-all-data. |
+| Vision | `src/app/vision.tsx` | Life map wheel and retake, the saved Vision Profile, delete-all-data. |
 | Data | `src/state/store.tsx` | Everything is stored on the device only (AsyncStorage). |
 
 When the coach outputs a Vision Profile, the app saves it and creates habits from its "Active habits" table automatically.
@@ -40,6 +42,7 @@ When the coach outputs a Vision Profile, the app saves it and creates habits fro
 
 ```powershell
 npx tsx tests/profile.test.ts
+npx tsx tests/life-map.test.ts
 ```
 
 ## Known limits of this prototype

@@ -1,6 +1,7 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { ApiError as GeminiError } from '@google/genai';
 
+import { parseLifeMap } from '@/lib/life-map';
 import { COACH_MODES, hasCredentials, runCoach, type CoachMode, type CoachRequest } from '@/server/coach';
 
 const MAX_MESSAGES = 300;
@@ -22,12 +23,17 @@ function parse(body: unknown): CoachRequest | string {
   if (typeof last.content === 'string' && last.content.length > MAX_TEXT) return 'Message too long.';
   if (b.profile !== null && typeof b.profile !== 'string') return 'profile must be a string or null.';
   if (typeof b.today !== 'string' || typeof b.habitLog !== 'string') return 'today and habitLog are required.';
+  const lifeMap = b.lifeMap == null ? null : parseLifeMap(b.lifeMap);
+  const previousLifeMap = b.previousLifeMap == null ? null : parseLifeMap(b.previousLifeMap);
+  if ((b.lifeMap != null && !lifeMap) || (b.previousLifeMap != null && !previousLifeMap)) return 'Invalid life map.';
   return {
     mode: b.mode as CoachMode,
     messages: b.messages as CoachRequest['messages'],
     profile: (b.profile as string | null) ?? null,
     today: b.today.slice(0, 100),
     habitLog: b.habitLog.slice(0, MAX_TEXT),
+    lifeMap,
+    previousLifeMap,
   };
 }
 
@@ -56,6 +62,7 @@ export async function POST(request: Request) {
       if (/api key/i.test(error.message) || error.status === 401 || error.status === 403) {
         return bad('The Gemini API key is not valid. Check GEMINI_API_KEY in .env and restart.', 500);
       }
+      if (error.status === 503) return bad('The free AI model is busy right now. Try again in a moment.', 503);
       if (error.status === 400 || error.status === 404) {
         return bad('The coach could not process this conversation. Try starting a new one.', 400);
       }

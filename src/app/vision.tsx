@@ -1,5 +1,7 @@
 import { router } from 'expo-router';
+import { View } from 'react-native';
 
+import { LifeMapWheel } from '@/components/life-map';
 import { ProfileView } from '@/components/profile-view';
 import { ThemedText } from '@/components/themed-text';
 import { Button, Card, confirm, Row, Screen } from '@/components/ui';
@@ -8,10 +10,44 @@ import { useStore } from '@/state/store';
 export default function VisionScreen() {
   const { data, loaded, resetAll } = useStore();
   if (!loaded) return <Screen>{null}</Screen>;
+  const latest = data.lifeMaps.at(-1);
+  const previous = data.lifeMaps.at(-2);
 
   return (
     <Screen>
       <ThemedText type="subtitle">My vision</ThemedText>
+
+      <Card>
+        <ThemedText type="smallBold">My life map</ThemedText>
+        {latest ? (
+          <>
+            <View style={{ alignItems: 'center' }}>
+              <LifeMapWheel scores={latest.scores} focus={latest.focus} previous={previous?.scores} />
+            </View>
+            <ThemedText type="small" themeColor="textSecondary">
+              Taken {new Date(latest.takenAt).toLocaleDateString()}
+              {previous ? ` · dashed line: ${new Date(previous.takenAt).toLocaleDateString()}` : ''}. Gold = where you
+              want change. Retake it every month or so to see how your life is shifting.
+            </ThemedText>
+            <Button
+              label="Update my life map"
+              kind="secondary"
+              onPress={() => router.navigate({ pathname: '/coach', params: { lifemap: 'retake' } })}
+            />
+          </>
+        ) : (
+          <>
+            <ThemedText type="small" themeColor="textSecondary">
+              Rate every part of your life in two minutes, and see it at a glance.
+            </ThemedText>
+            <Button
+              label="Take my life map"
+              kind="secondary"
+              onPress={() => router.navigate({ pathname: '/coach', params: { lifemap: 'retake' } })}
+            />
+          </>
+        )}
+      </Card>
 
       {data.profile ? (
         <>

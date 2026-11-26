@@ -2,12 +2,14 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, FlatList, KeyboardAvoidingView, Platform, StyleSheet, TextInput, View } from 'react-native';
 
+import { LifeMapForm } from '@/components/life-map';
 import { ThemedText } from '@/components/themed-text';
 import { Button, Card, confirm, Pill, Row, Screen } from '@/components/ui';
 import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { askCoach, type CoachMode } from '@/lib/coach-client';
 import { dateKey } from '@/lib/dates';
+import type { LifeMap } from '@/lib/life-map';
 import { extractProfile, messageText, withoutProfile } from '@/lib/profile';
 import { todaySummary } from '@/lib/progress';
 import type { ChatMessage } from '@/lib/types';
@@ -16,8 +18,8 @@ import { useStore } from '@/state/store';
 type Tab = 'coach' | 'checkin';
 
 export default function CoachScreen() {
-  const params = useLocalSearchParams<{ tab?: string; start?: string }>();
-  const { data, loaded, setCoachThread, setCheckin, saveProfile } = useStore();
+  const params = useLocalSearchParams<{ tab?: string; start?: string; lifemap?: string }>();
+  const { data, loaded, setCoachThread, setCheckin, saveProfile, addLifeMap } = useStore();
   const theme = useTheme();
   // A ?tab=checkin link from the Today screen wins until the user picks a tab here.
   const [chosen, setChosen] = useState<Tab>('coach');
@@ -36,14 +38,16 @@ export default function CoachScreen() {
   const saveThread = (messages: ChatMessage[]) =>
     tab === 'checkin' ? setCheckin(today, messages) : setCoachThread(messages);
 
-  const send = async (text: string, mode?: CoachMode) => {
+  const send = async (text: string, mode?: CoachMode, newMap?: LifeMap) => {
     const content = text.trim();
     if (!content || busy) return;
     const messages: ChatMessage[] = [...thread, { role: 'user', content }];
-    await run(messages, mode);
+    await run(messages, mode, newMap);
   };
 
-  const run = async (messages: ChatMessage[], mode?: CoachMode) => {
+  const run = async (messages: ChatMessage[], mode?: CoachMode, newMap?: LifeMap) => {
+    // A map saved this moment isn't in `data` yet, so it's passed in directly.
+    const maps = newMap ? [...data.lifeMaps, newMap] : data.lifeMaps;
     setDraft('');
     setError(null);
     saveThread(messages);
@@ -54,6 +58,8 @@ export default function CoachScreen() {
         messages,
         profile: data.profile,
         habitLog: todaySummary(data.habits, data.log),
+        lifeMap: maps.at(-1) ?? null,
+        previousLifeMap: maps.at(-2) ?? null,
       });
       saveThread([...messages, { role: 'assistant', content: reply.content }]);
       const profile = extractProfile(reply.text);
@@ -81,6 +87,32 @@ export default function CoachScreen() {
 
   const lastIsUser = thread.length > 0 && thread[thread.length - 1].role === 'user';
   if (!loaded) return <Screen scroll={false}>{null}</Screen>;
+
+  // Onboarding starts visually with the life map, not a blank chat. ?lifemap=retake re-measures it.
+  const retake = params.lifemap === 'retake';
+  const firstTime = !data.profile && data.lifeMaps.length === 0 && data.coachThread.length === 0;
+  if (tab === 'coach' && (retake || firstTime)) {
+    const latest = data.lifeMaps.at(-1) ?? null;
+    return (
+      <Screen>
+        <LifeMapForm
+          retake={retake && !!latest}
+          initial={retake ? latest : null}
+          previous={retake ? latest : null}
+          onCancel={retake ? () => router.setParams({ lifemap: undefined }) : undefined}
+          onDone={(map) => {
+            addLifeMap(map);
+            if (retake) router.setParams({ lifemap: undefined });
+            send(
+              retake && latest ? "I've updated my life map." : "I've filled in my life map.",
+              data.profile ? 'chat' : 'onboarding',
+              map,
+            );
+          }}
+        />
+      </Screen>
+    );
+  }
 
   return (
     <Screen scroll={false}>

@@ -42,8 +42,8 @@ export default function TodayScreen() {
         <Card>
           <ThemedText type="smallBold">Start here</ThemedText>
           <ThemedText>
-            A 10-minute conversation with your coach about what a flourishing life means to you. You’ll get your
-            vision, one insight, and your first tiny habits.
+            Map your whole life in two minutes, then a 10-minute session with your coach on what matters most.
+            You’ll get your life map, your vision, one insight, and your first tiny habits.
           </ThemedText>
           <Button label="Start my first session" onPress={() => router.navigate('/coach')} />
         </Card>

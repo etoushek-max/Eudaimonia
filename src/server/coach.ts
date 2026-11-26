@@ -3,6 +3,8 @@ import Anthropic from '@anthropic-ai/sdk';
 import fs from 'node:fs';
 import path from 'node:path';
 
+import { lifeMapSummary, playbooksFor, type LifeMap } from '@/lib/life-map';
+
 import { hasGeminiKey, runGemini } from './gemini';
 
 export type CoachMode = 'onboarding' | 'chat' | 'review' | 'checkin';
@@ -18,6 +20,8 @@ export interface CoachRequest {
   profile: string | null;
   today: string;
   habitLog: string;
+  lifeMap: LifeMap | null;
+  previousLifeMap: LifeMap | null;
 }
 
 export interface CoachResult {
@@ -34,11 +38,14 @@ const APP_CONTEXT = `You are running inside the Eudaimonia prototype app (not a 
   Area is one of: Body, Time & attention, Relationships, Other. Time is 24-hour HH:MM (best guess from what they said; leave blank if unknown).
 - In "## Vision picture", use one line per area: "- <Area>: <scene>".
 - The app gives you today's habit log below. It is the source of truth: don't ask about habits already logged — respond to them.
-- The user may answer by voice dictation; ignore obvious transcription errors.`;
+- The user may answer by voice dictation; ignore obvious transcription errors.
+- The user starts in the app's visual life map: they rate every life area 1–10, pick up to 3 focus areas, and say why they downloaded the app. You get the map below. Never ask them to rate areas again or list the areas back to them; use it.
+- Keep replies short (usually under 120 words) and end with one question. This is a coaching session on a phone, not an essay.`;
 
 const MODE_NOTES: Record<CoachMode, string> = {
-  onboarding: 'Current mode: Onboarding interview (no Vision Profile exists yet).',
-  chat: 'Current mode: open conversation. Work out what they need (check-in, dig, weekly review, or chat).',
+  onboarding:
+    'Current mode: Onboarding interview (no Vision Profile exists yet). Open from their life map: briefly reflect their reason for coming and one pattern you notice in the map (e.g. a gap between areas, or what they rated high), then go deep on their focus areas using the playbooks. Skip the "imagine a Tuesday in five years" opener unless the map gives you nothing to work with.',
+  chat: 'Current mode: open conversation. Work out what they need (check-in, dig, weekly review, or chat). If they just updated their life map, reflect on what changed since the previous one: name real progress, and ask about any area that dropped.',
   review: 'Current mode: Weekly review. Finish by outputting the updated Vision Profile.',
   checkin: 'Current mode: Daily check-in. Keep it short — under a minute of their time.',
 };
@@ -53,9 +60,22 @@ function coachInstructions(): string {
   return cachedInstructions;
 }
 
+const PLAYBOOK_DIR = path.join(process.cwd(), 'src', 'coach', 'playbooks');
+const playbookCache = new Map<string, string>();
+function playbooks(map: LifeMap | null): string {
+  // Names come from a fixed list in life-map.ts, never from user input.
+  return playbooksFor(map)
+    .map((name) => {
+      if (!playbookCache.has(name)) playbookCache.set(name, fs.readFileSync(path.join(PLAYBOOK_DIR, `${name}.md`), 'utf8'));
+      return playbookCache.get(name)!;
+    })
+    .join('\n\n---\n\n');
+}
+
 function contextBlock(req: CoachRequest): string {
   return [
     MODE_NOTES[req.mode],
+    req.lifeMap ? lifeMapSummary(req.lifeMap, req.previousLifeMap) : 'Life map: (not taken yet)',
     `Today: ${req.today}`,
     `Today's habit log:\n${req.habitLog || '(nothing logged yet)'}`,
     `Saved Vision Profile:\n${req.profile ?? '(none yet — run onboarding)'}`,
@@ -91,7 +111,7 @@ export async function runCoach(req: CoachRequest): Promise<CoachResult> {
   const deep = req.mode !== 'checkin';
 
   if (provider() === 'gemini') {
-    const system = [coachInstructions(), APP_CONTEXT, contextBlock(req)].join('\n\n');
+    const system = [coachInstructions(), APP_CONTEXT, playbooks(req.lifeMap), contextBlock(req)].join('\n\n');
     const r = await runGemini({ deep, system, messages: req.messages });
     if (!r.blocked && !r.text) throw new Error(`Gemini (${r.model}) returned an empty reply.`);
     const text = r.blocked ? REFUSAL_TEXT : r.text;
@@ -107,7 +127,8 @@ export async function runCoach(req: CoachRequest): Promise<CoachResult> {
     // Stable content first (cached), per-request context last.
     system: [
       { type: 'text', text: coachInstructions() },
-      { type: 'text', text: APP_CONTEXT, cache_control: { type: 'ephemeral' } },
+      { type: 'text', text: APP_CONTEXT },
+      { type: 'text', text: playbooks(req.lifeMap), cache_control: { type: 'ephemeral' } },
       { type: 'text', text: contextBlock(req) },
     ],
     messages: req.messages,
