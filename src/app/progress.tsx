@@ -65,7 +65,7 @@ export default function ProgressScreen() {
                     {habit.name}
                   </ThemedText>
                   <ThemedText type="small" themeColor="textSecondary">
-                    {s.doneThisWeek}/7 this week
+                    {s.doneThisWeek}/{s.plannedThisWeek} this week
                   </ThemedText>
                 </Row>
                 <Row style={styles.dots}>

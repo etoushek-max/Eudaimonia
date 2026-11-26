@@ -1,4 +1,5 @@
 import type { Habit } from './types';
+import type { PlanItem } from './week';
 
 // Rotating encouragement for calendar titles (spec: their why, identity, philosophy).
 const LINES = [
@@ -25,20 +26,33 @@ function escape(text: string): string {
  * A calendar file with one daily repeating event per habit, each with an alert at the start time.
  * Times are "floating" local times, so they stay at e.g. 07:00 wherever the phone is.
  */
-export function buildIcs(habits: Habit[], discreet = false): string {
+const BYDAY = ['SU', 'MO', 'TU', 'WE', 'TH', 'FR', 'SA'];
+
+export function buildIcs(habits: Habit[], discreet = false, items: PlanItem[] = []): string {
   const now = new Date();
   const events = habits.map((h, i) => {
     const [hh, mm] = (h.time || '08:00').split(':').map(Number);
     const start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hh, mm);
+    const days = h.days?.length && h.days.length < 7 ? h.days : null;
+    // Start on the first scheduled day from today.
+    while (days && !days.includes(start.getDay())) start.setDate(start.getDate() + 1);
     const title = discreet ? '🌱 Eudaimonia: habit' : `🌱 ${h.name} — ${LINES[i % LINES.length]}`;
-    const details = discreet ? 'Open Eudaimonia to check in.' : [h.when && `Plan: ${h.when}`, h.tiny && `Tiny version: ${h.tiny}`, h.obstacle && `If it gets hard: ${h.obstacle}`].filter(Boolean).join('\n');
+    const details = discreet
+      ? 'Open Eudaimonia to check in.'
+      : [
+          h.when && `Plan: ${h.when}`,
+          h.tiny && `Tiny version: ${h.tiny}`,
+          h.obstacle && `If it gets hard: ${h.obstacle}`,
+        ]
+          .filter(Boolean)
+          .join('\n');
     return [
       'BEGIN:VEVENT',
       `UID:${h.id}@eudaimonia.app`,
       `DTSTAMP:${stamp(now)}`,
       `DTSTART:${stamp(start)}`,
       'DURATION:PT30M',
-      'RRULE:FREQ=DAILY',
+      days ? `RRULE:FREQ=WEEKLY;BYDAY=${days.map((d) => BYDAY[d]).join(',')}` : 'RRULE:FREQ=DAILY',
       `SUMMARY:${escape(title)}`,
       `DESCRIPTION:${escape(details)}`,
       'BEGIN:VALARM',
@@ -49,5 +63,33 @@ export function buildIcs(habits: Habit[], discreet = false): string {
       'END:VEVENT',
     ].join('\r\n');
   });
-  return ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Eudaimonia//Prototype//EN', 'CALSCALE:GREGORIAN', ...events, 'END:VCALENDAR'].join('\r\n');
+  for (const item of items) {
+    const [y, mo, d] = item.date.split('-').map(Number);
+    const [hh, mm] = (item.time || '09:00').split(':').map(Number);
+    const title = discreet ? '🌱 Eudaimonia: plan' : `🌱 ${item.title}`;
+    events.push(
+      [
+        'BEGIN:VEVENT',
+        `UID:${item.id}@eudaimonia.app`,
+        `DTSTAMP:${stamp(now)}`,
+        `DTSTART:${stamp(new Date(y, mo - 1, d, hh, mm))}`,
+        'DURATION:PT30M',
+        `SUMMARY:${escape(title)}`,
+        'BEGIN:VALARM',
+        'ACTION:DISPLAY',
+        `DESCRIPTION:${escape(title)}`,
+        'TRIGGER:PT0M',
+        'END:VALARM',
+        'END:VEVENT',
+      ].join('\r\n'),
+    );
+  }
+  return [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//Eudaimonia//Prototype//EN',
+    'CALSCALE:GREGORIAN',
+    ...events,
+    'END:VCALENDAR',
+  ].join('\r\n');
 }

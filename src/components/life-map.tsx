@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Pressable, StyleSheet, TextInput, View } from 'react-native';
 import Svg, { Circle, G, Path, Text as SvgText } from 'react-native-svg';
 
+import { MicButton } from '@/components/mic-button';
 import { ThemedText } from '@/components/themed-text';
 import { Button, Card, Pill, Row } from '@/components/ui';
 import { Spacing } from '@/constants/theme';
@@ -217,15 +218,18 @@ export function LifeMapForm({
           <ThemedText type="smallBold">
             {retake ? 'What’s changed since last time?' : 'What made you download Eudaimonia today?'}
           </ThemedText>
-          <TextInput
-            style={[styles.input, { color: theme.text, backgroundColor: theme.backgroundElement }]}
-            placeholder="Type, or tap the mic on your keyboard to talk"
-            placeholderTextColor={theme.textSecondary}
-            value={whyNow}
-            onChangeText={setWhyNow}
-            multiline
-            maxLength={1000}
-          />
+          <View style={styles.answer}>
+            <TextInput
+              style={[styles.input, { color: theme.text, backgroundColor: theme.backgroundElement }]}
+              placeholder="Type, or tap 🎙 to talk"
+              placeholderTextColor={theme.textSecondary}
+              value={whyNow}
+              onChangeText={setWhyNow}
+              multiline
+              maxLength={1000}
+            />
+            <MicButton onText={(t) => setWhyNow((w) => (w.trim() ? `${w.trim()} ${t}` : t))} />
+          </View>
           <Row>
             <Button label="Back" kind="secondary" onPress={() => setStep('focus')} />
             <Button label={retake ? 'Save and talk to my coach' : 'Start my first session'} onPress={finish} />
@@ -243,9 +247,27 @@ const styles = StyleSheet.create({
   wheel: { alignItems: 'center' },
   center: { textAlign: 'center' },
   hint: { flexShrink: 1, textAlign: 'right' },
-  between: { justifyContent: 'space-between', flexWrap: 'nowrap', gap: Spacing.two },
+  between: {
+    justifyContent: 'space-between',
+    flexWrap: 'nowrap',
+    gap: Spacing.two,
+  },
   scale: { flexDirection: 'row', gap: 4 },
-  dot: { flex: 1, height: 30, borderRadius: 15, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
+  dot: {
+    flex: 1,
+    height: 30,
+    borderRadius: 15,
+    borderWidth: 1.5,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   chips: { flexWrap: 'wrap', gap: Spacing.two },
-  input: { borderRadius: Spacing.three, padding: Spacing.three, fontSize: 16, minHeight: 100 },
+  answer: { flexDirection: 'row', alignItems: 'flex-end', gap: Spacing.two },
+  input: {
+    flex: 1,
+    borderRadius: Spacing.three,
+    padding: Spacing.three,
+    fontSize: 16,
+    minHeight: 100,
+  },
 });

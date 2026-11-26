@@ -25,7 +25,8 @@ Restart the server after changing `.env`.
 | Coach server route | `src/app/api/coach+api.ts` | Receives the conversation from the app, validates it, calls the AI. Holds the API key; the app never sees it. |
 | AI connection | `src/server/coach.ts`, `src/server/gemini.ts` | Builds the request: coach instructions (`src/coach/coach-instructions.md`) + app rules + today's context. With a Gemini key: `gemini-3.8-flash`, and `gemini-3.5-flash-lite` for check-ins (override with `GEMINI_MODEL` / `GEMINI_CHECKIN_MODEL`). With a Claude key: Claude Opus 5.5, and Claude Haiku 5.5 for check-ins. |
 | Today | `src/app/index.tsx` | Today's habits, done / not today, add a habit, add habits to calendar. |
-| Coach | `src/app/coach.tsx` | Chat with the coach, plus a short daily check-in thread. Voice answers via the keyboard's microphone. |
+| Coach | `src/app/coach.tsx` | Chat with the coach, plus a short daily check-in thread. Tap 🎙 to answer by voice: the recording is transcribed (`src/app/api/transcribe+api.ts`, Gemini) into the text box to check before sending. |
+| Week | `src/app/week.tsx`, `src/lib/week.ts` | This week's plan: calendar strip + day-by-day list of habits (on their days) and one-off items. "Plan my week with my coach" fills it; items can be added by hand and sent to the phone calendar. |
 | Life map | `src/components/life-map.tsx`, `src/lib/life-map.ts` | First step of onboarding: rate all 11 life areas 1–10 (wheel fills in), pick up to 3 focus areas, say why now. Retake from the Vision tab; the old map shows as a dashed line. |
 | Area playbooks | `src/coach/playbooks/*.md` | Leading frameworks, questions, habits and limits per coached area. The server loads the ones for the user's focus areas. |
 | Progress | `src/app/progress.tsx` | Vision panels that gain colour as habits are done (never fades), 14-day history per habit, weekly review. |
@@ -43,6 +44,7 @@ When the coach outputs a Vision Profile, the app saves it and creates habits fro
 ```powershell
 npx tsx tests/profile.test.ts
 npx tsx tests/life-map.test.ts
+npx tsx tests/week.test.ts
 ```
 
 ## Known limits of this prototype
@@ -50,5 +52,5 @@ npx tsx tests/life-map.test.ts
 - No accounts or cloud sync: data lives on one device.
 - No push notifications yet (reminders come from the calendar).
 - Vision picture is coloured panels with the coach's scene text, not AI images yet.
-- Only daily habits (no "Mon/Wed/Fri" schedules yet).
-- Voice is the phone keyboard's dictation, not recorded audio.
+- Voice input needs the Gemini key (Claude doesn't take audio); recordings are sent to Google for transcription and not stored.
+- The coach's replies show markdown (e.g. **bold**) as plain text.

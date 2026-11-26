@@ -15,6 +15,9 @@ export default function AppTabs() {
           <TabTrigger name="index" href="/" asChild>
             <TabButton>Today</TabButton>
           </TabTrigger>
+          <TabTrigger name="week" href="/week" asChild>
+            <TabButton>Week</TabButton>
+          </TabTrigger>
           <TabTrigger name="coach" href="/coach" asChild>
             <TabButton>Coach</TabButton>
           </TabTrigger>
@@ -72,10 +75,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flexGrow: 1,
     flexWrap: 'wrap',
+    justifyContent: 'center',
     gap: Spacing.one,
     maxWidth: MaxContentWidth,
   },
   brandText: { marginRight: 'auto' },
   pressed: { opacity: 0.7 },
-  tabButtonView: { paddingVertical: Spacing.one, paddingHorizontal: Spacing.two + Spacing.one, borderRadius: Spacing.three },
+  tabButtonView: {
+    paddingVertical: Spacing.one,
+    paddingHorizontal: Spacing.two + Spacing.one,
+    borderRadius: Spacing.three,
+  },
 });

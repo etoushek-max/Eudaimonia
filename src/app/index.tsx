@@ -10,6 +10,7 @@ import { addHabitsToCalendar } from '@/lib/calendar';
 import { dateKey, prettyDate } from '@/lib/dates';
 import { habitStats } from '@/lib/progress';
 import { AREAS, type Area, type Habit } from '@/lib/types';
+import { DAY_SHORT, daysLabel, isScheduled, WEEK_ORDER } from '@/lib/week';
 import { useStore } from '@/state/store';
 
 export default function TodayScreen() {
@@ -42,27 +43,39 @@ export default function TodayScreen() {
         <Card>
           <ThemedText type="smallBold">Start here</ThemedText>
           <ThemedText>
-            Map your whole life in two minutes, then a 10-minute session with your coach on what matters most.
-            You’ll get your life map, your vision, one insight, and your first tiny habits.
+            Map your whole life in two minutes, then a 10-minute session with your coach on what matters most. You’ll
+            get your life map, your vision, one insight, and your first tiny habits.
           </ThemedText>
           <Button label="Start my first session" onPress={() => router.navigate('/coach')} />
         </Card>
       )}
 
-      {data.habits.map((habit) => (
-        <HabitCard
-          key={habit.id}
-          habit={habit}
-          status={data.log[today]?.[habit.id] ?? null}
-          missedTwice={habitStats(habit, data.log).missedTwice}
-          onSet={(s) => setStatus(habit.id, s)}
-          onRemove={() =>
-            confirm('Remove habit?', `"${habit.name}" will be removed. Its history stays in your log.`, () =>
-              removeHabit(habit.id),
-            )
-          }
-        />
-      ))}
+      {data.habits
+        .filter((h) => isScheduled(h, today))
+        .map((habit) => (
+          <HabitCard
+            key={habit.id}
+            habit={habit}
+            status={data.log[today]?.[habit.id] ?? null}
+            missedTwice={habitStats(habit, data.log).missedTwice}
+            onSet={(s) => setStatus(habit.id, s)}
+            onRemove={() =>
+              confirm('Remove habit?', `"${habit.name}" will be removed. Its history stays in your log.`, () =>
+                removeHabit(habit.id),
+              )
+            }
+          />
+        ))}
+
+      {data.habits.some((h) => !isScheduled(h, today)) && (
+        <ThemedText type="small" themeColor="textSecondary">
+          Not scheduled today:{' '}
+          {data.habits
+            .filter((h) => !isScheduled(h, today))
+            .map((h) => `${h.name} (${daysLabel(h.days)})`)
+            .join(', ')}
+        </ThemedText>
+      )}
 
       {data.habits.length > 0 && (
         <>
@@ -106,6 +119,7 @@ function HabitCard({
           <ThemedText type="smallBold">{habit.name}</ThemedText>
           <ThemedText type="small" themeColor="textSecondary">
             {habit.area}
+            {habit.days ? ` · ${daysLabel(habit.days)}` : ''}
             {habit.time ? ` · ${habit.time}` : ''}
             {habit.when ? ` · ${habit.when}` : ''}
           </ThemedText>
@@ -141,10 +155,20 @@ function AddHabit() {
   const [name, setName] = useState('');
   const [area, setArea] = useState<Area>('Body');
   const [time, setTime] = useState('');
+  const [days, setDays] = useState<number[]>([0, 1, 2, 3, 4, 5, 6]);
+  const toggleDay = (d: number) => setDays((ds) => (ds.includes(d) ? ds.filter((x) => x !== d) : [...ds, d].sort()));
 
   const validTime = time === '' || /^([01]?\d|2[0-3]):[0-5]\d$/.test(time);
   const save = () => {
-    addHabit({ name: name.trim(), area, time: time ? time.padStart(5, '0') : '', when: '', tiny: '', obstacle: '' });
+    addHabit({
+      name: name.trim(),
+      area,
+      time: time ? time.padStart(5, '0') : '',
+      days: days.length === 7 ? undefined : days,
+      when: '',
+      tiny: '',
+      obstacle: '',
+    });
     setName('');
     setTime('');
     setOpen(false);
@@ -169,6 +193,11 @@ function AddHabit() {
           <Pill key={a} label={a} selected={a === area} onPress={() => setArea(a)} />
         ))}
       </Row>
+      <Row>
+        {WEEK_ORDER.map((d) => (
+          <Pill key={d} label={DAY_SHORT[d]} selected={days.includes(d)} onPress={() => toggleDay(d)} />
+        ))}
+      </Row>
       <TextInput
         style={input}
         placeholder="Time, 24-hour (e.g. 07:30) — optional"
@@ -183,7 +212,7 @@ function AddHabit() {
         </ThemedText>
       )}
       <Row>
-        <Button label="Save habit" onPress={save} disabled={!name.trim() || !validTime} />
+        <Button label="Save habit" onPress={save} disabled={!name.trim() || !validTime || days.length === 0} />
         <Button label="Cancel" kind="secondary" onPress={() => setOpen(false)} />
       </Row>
     </Card>
@@ -193,5 +222,10 @@ function AddHabit() {
 const styles = StyleSheet.create({
   between: { justifyContent: 'space-between', flexWrap: 'nowrap' },
   flex: { flex: 1 },
-  input: { borderWidth: 1, borderRadius: Spacing.two, padding: Spacing.two, fontSize: 16 },
+  input: {
+    borderWidth: 1,
+    borderRadius: Spacing.two,
+    padding: Spacing.two,
+    fontSize: 16,
+  },
 });

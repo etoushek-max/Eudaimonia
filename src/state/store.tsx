@@ -3,6 +3,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 
 import { dateKey } from '@/lib/dates';
 import type { LifeMap } from '@/lib/life-map';
+import type { PlanItem } from '@/lib/week';
 import { parseHabits } from '@/lib/profile';
 import { EMPTY_DATA, type AppData, type ChatMessage, type Habit, type LogStatus } from '@/lib/types';
 
@@ -18,6 +19,10 @@ interface Store {
   setCoachThread: (messages: ChatMessage[]) => void;
   setCheckin: (day: string, messages: ChatMessage[]) => void;
   addLifeMap: (map: LifeMap) => void;
+  setWeekPlan: (items: Omit<PlanItem, 'id' | 'done'>[]) => void;
+  addPlanItem: (item: Omit<PlanItem, 'id' | 'done'>) => void;
+  togglePlanItem: (id: string) => void;
+  removePlanItem: (id: string) => void;
   resetAll: () => void;
 }
 
@@ -54,15 +59,25 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       const habits = parsed.length
         ? parsed.map((h) => {
             const existing = d.habits.find((x) => x.name.toLowerCase() === h.name.toLowerCase());
-            return existing ? { ...existing, ...h } : { ...h, id: newId(), createdAt: new Date().toISOString() };
+            return existing
+              ? { ...existing, ...h, days: h.days }
+              : { ...h, id: newId(), createdAt: new Date().toISOString() };
           })
         : d.habits;
-      return { ...d, profile, profileUpdatedAt: new Date().toISOString(), habits };
+      return {
+        ...d,
+        profile,
+        profileUpdatedAt: new Date().toISOString(),
+        habits,
+      };
     });
   }, []);
 
   const addHabit = useCallback((habit: Omit<Habit, 'id' | 'createdAt'>) => {
-    setData((d) => ({ ...d, habits: [...d.habits, { ...habit, id: newId(), createdAt: new Date().toISOString() }] }));
+    setData((d) => ({
+      ...d,
+      habits: [...d.habits, { ...habit, id: newId(), createdAt: new Date().toISOString() }],
+    }));
   }, []);
 
   const removeHabit = useCallback((id: string) => {
@@ -84,11 +99,76 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     [],
   );
   const addLifeMap = useCallback((map: LifeMap) => setData((d) => ({ ...d, lifeMaps: [...d.lifeMaps, map] })), []);
+  // A new plan from the coach replaces unfinished items in the days it covers; done items stay.
+  const setWeekPlan = useCallback(
+    (items: Omit<PlanItem, 'id' | 'done'>[]) =>
+      setData((d) => {
+        if (items.length === 0) return d;
+        const dates = items.map((i) => i.date).sort();
+        const [first, last] = [dates[0], dates[dates.length - 1]];
+        const kept = d.plan.filter((p) => p.done || p.date < first || p.date > last);
+        return {
+          ...d,
+          plan: [...kept, ...items.map((i) => ({ ...i, id: newId(), done: false }))],
+        };
+      }),
+    [],
+  );
+  const addPlanItem = useCallback(
+    (item: Omit<PlanItem, 'id' | 'done'>) =>
+      setData((d) => ({
+        ...d,
+        plan: [...d.plan, { ...item, id: newId(), done: false }],
+      })),
+    [],
+  );
+  const togglePlanItem = useCallback(
+    (id: string) =>
+      setData((d) => ({
+        ...d,
+        plan: d.plan.map((p) => (p.id === id ? { ...p, done: !p.done } : p)),
+      })),
+    [],
+  );
+  const removePlanItem = useCallback(
+    (id: string) => setData((d) => ({ ...d, plan: d.plan.filter((p) => p.id !== id) })),
+    [],
+  );
   const resetAll = useCallback(() => setData(EMPTY_DATA), []);
 
   const value = useMemo(
-    () => ({ data, loaded, saveProfile, addHabit, removeHabit, setStatus, setCoachThread, setCheckin, addLifeMap, resetAll }),
-    [data, loaded, saveProfile, addHabit, removeHabit, setStatus, setCoachThread, setCheckin, addLifeMap, resetAll],
+    () => ({
+      data,
+      loaded,
+      saveProfile,
+      addHabit,
+      removeHabit,
+      setStatus,
+      setCoachThread,
+      setCheckin,
+      addLifeMap,
+      setWeekPlan,
+      addPlanItem,
+      togglePlanItem,
+      removePlanItem,
+      resetAll,
+    }),
+    [
+      data,
+      loaded,
+      saveProfile,
+      addHabit,
+      removeHabit,
+      setStatus,
+      setCoachThread,
+      setCheckin,
+      addLifeMap,
+      setWeekPlan,
+      addPlanItem,
+      togglePlanItem,
+      removePlanItem,
+      resetAll,
+    ],
   );
 
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>;

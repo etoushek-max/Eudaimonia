@@ -33,7 +33,13 @@
           "imageWidth": 76
         }
       ],
-      "expo-sharing"
+      "expo-sharing",
+      [
+        "expo-audio",
+        {
+          "microphonePermission": "Eudaimonia uses the microphone so you can answer your coach by voice."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

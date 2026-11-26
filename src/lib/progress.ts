@@ -1,16 +1,23 @@
 import { dateKey, lastNDays } from './dates';
 import type { Area, Habit, HabitLog, LogStatus } from './types';
+import { isScheduled } from './week';
 
 export interface HabitStats {
-  days: { key: string; status: LogStatus | null }[];
+  days: { key: string; status: LogStatus | null; scheduled: boolean }[];
   doneThisWeek: number;
+  /** Scheduled days in the last 7 (7 for daily habits). */
+  plannedThisWeek: number;
   /** Two misses in a row, most recent first — time for a gentle dig. */
   missedTwice: boolean;
   totalDone: number;
 }
 
 export function habitStats(habit: Habit, log: HabitLog, window = 14): HabitStats {
-  const days = lastNDays(window).map((key) => ({ key, status: log[key]?.[habit.id] ?? null }));
+  const days = lastNDays(window).map((key) => ({
+    key,
+    status: log[key]?.[habit.id] ?? null,
+    scheduled: isScheduled(habit, key),
+  }));
   const week = days.slice(-7);
   const logged = days.filter((d) => d.status !== null);
   const lastTwo = logged.slice(-2);
@@ -18,6 +25,7 @@ export function habitStats(habit: Habit, log: HabitLog, window = 14): HabitStats
   return {
     days,
     doneThisWeek: week.filter((d) => d.status === 'done').length,
+    plannedThisWeek: week.filter((d) => d.scheduled).length,
     missedTwice: lastTwo.length === 2 && lastTwo.every((d) => d.status === 'missed'),
     totalDone,
   };
@@ -51,9 +59,16 @@ export function todaySummary(habits: Habit[], log: HabitLog, key = dateKey()): s
     .map((h) => {
       const status = log[key]?.[h.id];
       const stats = habitStats(h, log);
-      const label = status === 'done' ? 'done' : status === 'missed' ? 'missed' : 'not logged yet';
+      const label =
+        status === 'done'
+          ? 'done'
+          : status === 'missed'
+            ? 'missed'
+            : isScheduled(h, key)
+              ? 'not logged yet'
+              : 'not scheduled today';
       const flag = stats.missedTwice ? ' (missed twice in a row)' : '';
-      return `- ${h.name}: ${label}; ${stats.doneThisWeek}/7 this week${flag}`;
+      return `- ${h.name}: ${label}; ${stats.doneThisWeek}/${stats.plannedThisWeek} this week${flag}`;
     })
     .join('\n');
 }

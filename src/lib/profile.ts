@@ -1,4 +1,5 @@
 import { AREAS, type Area, type ChatMessage, type Habit } from './types';
+import { parseDays } from './week';
 
 const PROFILE_BLOCK = /```[a-z]*\s*\n(# Vision Profile[\s\S]*?)```/;
 
@@ -58,10 +59,12 @@ export function parseHabits(profile: string): Omit<Habit, 'id' | 'createdAt'>[] 
     .slice(0, 3)
     .map((cells) => {
       const sixCol = cells.length >= 6;
+      const days = sixCol ? parseDays(cells[2]) : undefined;
       return {
         name: cells[0],
         area: sixCol ? toArea(cells[1]) : 'Other',
         time: sixCol ? toTime(cells[2]) : '',
+        ...(days ? { days } : {}),
         when: sixCol ? cells[3] : (cells[1] ?? ''),
         tiny: sixCol ? cells[4] : (cells[2] ?? ''),
         obstacle: sixCol ? cells[5] : (cells[3] ?? ''),

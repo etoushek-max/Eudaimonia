@@ -49,8 +49,9 @@ Life areas (long-term roadmap):
 - **Life map first** (see below): a visual, 2-minute start before any chat — rate each life area, pick where you want change, say why now
 - Onboarding interview → personal vision document (editable) + vision picture (see below)
   - **Adaptive, like a first session with a therapist or coach** — not a static intake form. The AI follows a guide of life areas to cover, but asks follow-up questions based on each answer to dig deeper.
-  - **Voice answers (no video).** Each turn, the user can type or record their answer; it's transcribed and they can correct the text before sending. Questions can optionally be read aloud. Turn-based, not live conversation.
-- Goals + up to 3 active habits at a time
+  - **Voice answers (no video).** Each turn, the user can type or tap the in-app mic to record their answer; it's transcribed and they can correct the text before sending. Questions can optionally be read aloud. Turn-based, not live conversation.
+- Goals + up to 3 active habits at a time, each on chosen days (daily, weekdays, Mon/Wed/Fri…)
+- **Week tab:** this week's plan as a calendar strip and a day-by-day list — habits on their days plus one-off actions (call Mum, meal prep, book a physio). The weekly review ends by planning the coming week with the coach, which fills it in; users can add items themselves and send the week to their phone calendar.
 - Check-ins via push notification; **the user decides how often check-ins happen**
 - Coach chat with memory of the vision, goals, habits and history
 - Weekly review: what went well, what didn't, what to adjust
@@ -227,6 +228,7 @@ Drawn from established research and philosophy:
 - 2026-11-23 — MVP interview is adaptive with turn-based voice answers (no video). Live voice and coach calls are phase 2.
 
 - 2026-11-23 — Pricing: free = 1 area; paid = $14.99/month or $99/year, all areas.
+- 2026-11-25 — In-app mic button (transcribed on the server) and a Week tab with this week's plan (calendar strip + list), filled by the weekly review / "plan my week" with the coach.
 - 2026-11-24 — Technology: Postgres/pgvector foundation; dspy.ts for coach quality; AgentDB/RuVector piloted as swappable memory; Ruflo for dev only; MidStream evaluated in phase 2.
 - 2026-11-25 — Prototype coach temporarily runs on a free Gemini key (Google AI Studio); Claude when a Claude key is set. Free tier: test with made-up details only.
 - 2026-11-25 — "Not just a chatbot" principle, visual life map onboarding (assess all areas, coach a few) and evidence-based area playbooks adopted (David's prototype feedback).

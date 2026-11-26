@@ -16,6 +16,10 @@ export default function AppTabs() {
         <NativeTabs.Trigger.Label>Today</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon sf="sun.max" md="today" />
       </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="week">
+        <NativeTabs.Trigger.Label>Week</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Icon sf="calendar" md="calendar_month" />
+      </NativeTabs.Trigger>
       <NativeTabs.Trigger name="coach">
         <NativeTabs.Trigger.Label>Coach</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon sf="bubble.left.and.bubble.right" md="chat" />

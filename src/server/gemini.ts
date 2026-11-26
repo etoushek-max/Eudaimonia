@@ -26,6 +26,26 @@ function toContents(messages: ChatMessage[]): Content[] {
     .filter((c) => c.parts[0].text);
 }
 
+/** Speech to text for the in-app mic button. Returns the transcript only. */
+export async function transcribe(audioBase64: string, mimeType: string): Promise<string> {
+  const response = await getClient().models.generateContent({
+    model: ROUTINE_MODEL,
+    contents: [
+      {
+        role: 'user',
+        parts: [
+          { inlineData: { mimeType, data: audioBase64 } },
+          {
+            text: 'Transcribe this voice note word for word, with normal punctuation. Output only the transcript. If there is no speech, output nothing.',
+          },
+        ],
+      },
+    ],
+    config: { maxOutputTokens: 4000 },
+  });
+  return (response.text ?? '').trim();
+}
+
 export async function runGemini(opts: {
   deep: boolean;
   system: string;

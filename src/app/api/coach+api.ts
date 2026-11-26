@@ -23,6 +23,7 @@ function parse(body: unknown): CoachRequest | string {
   if (typeof last.content === 'string' && last.content.length > MAX_TEXT) return 'Message too long.';
   if (b.profile !== null && typeof b.profile !== 'string') return 'profile must be a string or null.';
   if (typeof b.today !== 'string' || typeof b.habitLog !== 'string') return 'today and habitLog are required.';
+  if (b.weekPlan !== undefined && typeof b.weekPlan !== 'string') return 'weekPlan must be a string.';
   const lifeMap = b.lifeMap == null ? null : parseLifeMap(b.lifeMap);
   const previousLifeMap = b.previousLifeMap == null ? null : parseLifeMap(b.previousLifeMap);
   if ((b.lifeMap != null && !lifeMap) || (b.previousLifeMap != null && !previousLifeMap)) return 'Invalid life map.';
@@ -32,6 +33,7 @@ function parse(body: unknown): CoachRequest | string {
     profile: (b.profile as string | null) ?? null,
     today: b.today.slice(0, 100),
     habitLog: b.habitLog.slice(0, MAX_TEXT),
+    weekPlan: typeof b.weekPlan === 'string' ? b.weekPlan.slice(0, MAX_TEXT) : '',
     lifeMap,
     previousLifeMap,
   };

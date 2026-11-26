@@ -3,16 +3,17 @@ import * as Sharing from 'expo-sharing';
 
 import { buildIcs } from './ics';
 import type { Habit } from './types';
+import type { PlanItem } from './week';
 
 /**
  * Opens a calendar file of the habits so the phone's calendar app can add them.
  * (Expo Go can't write to the calendar directly; a development build can use expo-calendar later.)
  */
-export async function addHabitsToCalendar(habits: Habit[], discreet = false): Promise<void> {
+export async function addHabitsToCalendar(habits: Habit[], discreet = false, items: PlanItem[] = []): Promise<void> {
   const file = new File(Paths.cache, 'eudaimonia-habits.ics');
   if (file.exists) file.delete();
   file.create();
-  file.write(buildIcs(habits, discreet));
+  file.write(buildIcs(habits, discreet, items));
 
   if (await File.canPreview(file).catch(() => false)) {
     await File.preview(file, { mimeType: 'text/calendar', title: 'Add habits to calendar' });

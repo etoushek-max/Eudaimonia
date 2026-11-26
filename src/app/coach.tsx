@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, FlatList, KeyboardAvoidingView, Platform, StyleSheet, TextInput, View } from 'react-native';
 
 import { LifeMapForm } from '@/components/life-map';
+import { MicButton } from '@/components/mic-button';
 import { ThemedText } from '@/components/themed-text';
 import { Button, Card, confirm, Pill, Row, Screen } from '@/components/ui';
 import { Spacing } from '@/constants/theme';
@@ -13,13 +14,18 @@ import type { LifeMap } from '@/lib/life-map';
 import { extractProfile, messageText, withoutProfile } from '@/lib/profile';
 import { todaySummary } from '@/lib/progress';
 import type { ChatMessage } from '@/lib/types';
+import { extractWeekPlan, weekSummary, withoutWeekPlan } from '@/lib/week';
 import { useStore } from '@/state/store';
 
 type Tab = 'coach' | 'checkin';
 
 export default function CoachScreen() {
-  const params = useLocalSearchParams<{ tab?: string; start?: string; lifemap?: string }>();
-  const { data, loaded, setCoachThread, setCheckin, saveProfile, addLifeMap } = useStore();
+  const params = useLocalSearchParams<{
+    tab?: string;
+    start?: string;
+    lifemap?: string;
+  }>();
+  const { data, loaded, setCoachThread, setCheckin, saveProfile, addLifeMap, setWeekPlan } = useStore();
   const theme = useTheme();
   // A ?tab=checkin link from the Today screen wins until the user picks a tab here.
   const [chosen, setChosen] = useState<Tab>('coach');
@@ -58,12 +64,15 @@ export default function CoachScreen() {
         messages,
         profile: data.profile,
         habitLog: todaySummary(data.habits, data.log),
+        weekPlan: weekSummary(data.plan, data.habits, data.log),
         lifeMap: maps.at(-1) ?? null,
         previousLifeMap: maps.at(-2) ?? null,
       });
       saveThread([...messages, { role: 'assistant', content: reply.content }]);
       const profile = extractProfile(reply.text);
       if (profile) saveProfile(profile);
+      const plan = extractWeekPlan(reply.text);
+      if (plan?.length) setWeekPlan(plan);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Something went wrong.');
     } finally {
@@ -71,11 +80,13 @@ export default function CoachScreen() {
     }
   };
 
-  // Deep link from the Progress screen: ?start=review
+  // Deep links: ?start=review (Progress screen), ?start=plan (Week screen)
   useEffect(() => {
-    if (params.start === 'review' && tab === 'coach' && !busy) {
+    if ((params.start === 'review' || params.start === 'plan') && tab === 'coach' && !busy) {
+      const start = params.start;
       router.setParams({ start: undefined });
-      send("Let's do my weekly review.", 'review');
+      if (start === 'review') send("Let's do my weekly review.", 'review');
+      else send("Let's plan my week.", 'plan');
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params.start, tab]);
@@ -131,7 +142,9 @@ export default function CoachScreen() {
           data={thread}
           keyExtractor={(_, i) => String(i)}
           contentContainerStyle={styles.messages}
-          ListEmptyComponent={<Intro tab={tab} hasProfile={!!data.profile} hasHabits={data.habits.length > 0} onStart={send} />}
+          ListEmptyComponent={
+            <Intro tab={tab} hasProfile={!!data.profile} hasHabits={data.habits.length > 0} onStart={send} />
+          }
           renderItem={({ item }) => <Bubble message={item} />}
           ListFooterComponent={
             <>
@@ -159,13 +172,14 @@ export default function CoachScreen() {
           <View style={styles.composer}>
             <TextInput
               style={[styles.input, { color: theme.text, backgroundColor: theme.backgroundElement }]}
-              placeholder="Type, or tap the mic on your keyboard to talk"
+              placeholder="Type, or tap 🎙 to talk"
               placeholderTextColor={theme.textSecondary}
               value={draft}
               onChangeText={setDraft}
               multiline
               maxLength={4000}
             />
+            <MicButton disabled={busy} onText={(t) => setDraft((d) => (d.trim() ? `${d.trim()} ${t}` : t))} />
             <Button label="Send" onPress={() => send(draft)} disabled={busy || !draft.trim()} />
           </View>
         )}
@@ -227,15 +241,19 @@ function Intro({
 function Bubble({ message }: { message: ChatMessage }) {
   const theme = useTheme();
   const mine = message.role === 'user';
-  const { text, hadProfile } = withoutProfile(messageText(message));
-  if (!text && !hadProfile) return null;
+  const { text: withoutVision, hadProfile } = withoutProfile(messageText(message));
+  const { text, hadPlan } = withoutWeekPlan(withoutVision);
+  if (!text && !hadProfile && !hadPlan) return null;
   return (
     <View
       style={[
         styles.bubble,
         mine
           ? { alignSelf: 'flex-end', backgroundColor: theme.accent }
-          : { alignSelf: 'flex-start', backgroundColor: theme.backgroundElement },
+          : {
+              alignSelf: 'flex-start',
+              backgroundColor: theme.backgroundElement,
+            },
       ]}>
       {text ? (
         <ThemedText selectable style={mine ? { color: theme.onAccent } : undefined}>
@@ -247,6 +265,11 @@ function Bubble({ message }: { message: ChatMessage }) {
           ✓ Vision Profile saved — see the Vision tab
         </ThemedText>
       )}
+      {hadPlan && (
+        <ThemedText type="smallBold" style={{ color: theme.accent }}>
+          ✓ Week plan saved — see the Week tab
+        </ThemedText>
+      )}
     </View>
   );
 }
@@ -255,8 +278,24 @@ const styles = StyleSheet.create({
   flex: { flex: 1 },
   header: { paddingBottom: Spacing.two },
   messages: { gap: Spacing.two, paddingVertical: Spacing.two },
-  bubble: { maxWidth: '88%', borderRadius: Spacing.three, padding: Spacing.three, gap: Spacing.two },
+  bubble: {
+    maxWidth: '88%',
+    borderRadius: Spacing.three,
+    padding: Spacing.three,
+    gap: Spacing.two,
+  },
   thinking: { paddingVertical: Spacing.two },
-  composer: { flexDirection: 'row', alignItems: 'flex-end', gap: Spacing.two, paddingVertical: Spacing.two },
-  input: { flex: 1, borderRadius: Spacing.three, padding: Spacing.three, fontSize: 16, maxHeight: 140 },
+  composer: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    gap: Spacing.two,
+    paddingVertical: Spacing.two,
+  },
+  input: {
+    flex: 1,
+    borderRadius: Spacing.three,
+    padding: Spacing.three,
+    fontSize: 16,
+    maxHeight: 140,
+  },
 });

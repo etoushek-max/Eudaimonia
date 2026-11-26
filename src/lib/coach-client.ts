@@ -2,7 +2,7 @@ import { prettyDate } from './dates';
 import type { LifeMap } from './life-map';
 import type { ChatMessage } from './types';
 
-export type CoachMode = 'onboarding' | 'chat' | 'review' | 'checkin';
+export type CoachMode = 'onboarding' | 'chat' | 'review' | 'plan' | 'checkin';
 
 type Content = NonNullable<ChatMessage['content']>;
 
@@ -18,6 +18,7 @@ export async function askCoach(args: {
   messages: ChatMessage[];
   profile: string | null;
   habitLog: string;
+  weekPlan: string;
   lifeMap: LifeMap | null;
   previousLifeMap: LifeMap | null;
 }): Promise<CoachReply> {
