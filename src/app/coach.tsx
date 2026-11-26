@@ -2,6 +2,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, FlatList, KeyboardAvoidingView, Platform, StyleSheet, TextInput, View } from 'react-native';
 
+import { InfluencesForm } from '@/components/influences-form';
 import { LifeMapForm } from '@/components/life-map';
 import { MicButton } from '@/components/mic-button';
 import { ThemedText } from '@/components/themed-text';
@@ -10,6 +11,7 @@ import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { askCoach, type CoachMode } from '@/lib/coach-client';
 import { dateKey } from '@/lib/dates';
+import type { Influences } from '@/lib/influences';
 import type { LifeMap } from '@/lib/life-map';
 import { extractProfile, messageText, withoutProfile } from '@/lib/profile';
 import { todaySummary } from '@/lib/progress';
@@ -24,8 +26,12 @@ export default function CoachScreen() {
     tab?: string;
     start?: string;
     lifemap?: string;
+    influences?: string;
   }>();
-  const { data, loaded, setCoachThread, setCheckin, saveProfile, addLifeMap, setWeekPlan } = useStore();
+  const { data, loaded, setCoachThread, setCheckin, saveProfile, addLifeMap, setWeekPlan, setInfluences } = useStore();
+  // First-time onboarding: life map first, then "Make it yours", then the first session.
+  const [pendingMap, setPendingMap] = useState<LifeMap | null>(null);
+  const [showInfluences, setShowInfluences] = useState(false);
   const theme = useTheme();
   // A ?tab=checkin link from the Today screen wins until the user picks a tab here.
   const [chosen, setChosen] = useState<Tab>('coach');
@@ -44,14 +50,14 @@ export default function CoachScreen() {
   const saveThread = (messages: ChatMessage[]) =>
     tab === 'checkin' ? setCheckin(today, messages) : setCoachThread(messages);
 
-  const send = async (text: string, mode?: CoachMode, newMap?: LifeMap) => {
+  const send = async (text: string, mode?: CoachMode, newMap?: LifeMap, newInfluences?: Influences) => {
     const content = text.trim();
     if (!content || busy) return;
     const messages: ChatMessage[] = [...thread, { role: 'user', content }];
-    await run(messages, mode, newMap);
+    await run(messages, mode, newMap, newInfluences);
   };
 
-  const run = async (messages: ChatMessage[], mode?: CoachMode, newMap?: LifeMap) => {
+  const run = async (messages: ChatMessage[], mode?: CoachMode, newMap?: LifeMap, newInfluences?: Influences) => {
     // A map saved this moment isn't in `data` yet, so it's passed in directly.
     const maps = newMap ? [...data.lifeMaps, newMap] : data.lifeMaps;
     setDraft('');
@@ -67,6 +73,7 @@ export default function CoachScreen() {
         weekPlan: weekSummary(data.plan, data.habits, data.log),
         lifeMap: maps.at(-1) ?? null,
         previousLifeMap: maps.at(-2) ?? null,
+        influences: newInfluences ?? data.influences,
       });
       saveThread([...messages, { role: 'assistant', content: reply.content }]);
       const profile = extractProfile(reply.text);
@@ -100,18 +107,61 @@ export default function CoachScreen() {
   if (!loaded) return <Screen scroll={false}>{null}</Screen>;
 
   // Onboarding starts visually with the life map, not a blank chat. ?lifemap=retake re-measures it.
+  if (tab === 'coach' && params.influences === 'edit') {
+    const leave = () => {
+      router.setParams({ influences: undefined });
+      router.navigate('/vision');
+    };
+    return (
+      <Screen>
+        <InfluencesForm
+          initial={data.influences}
+          finishLabel="Save"
+          onCancel={leave}
+          onDone={(inf) => {
+            setInfluences(inf);
+            leave();
+          }}
+        />
+      </Screen>
+    );
+  }
+
   const retake = params.lifemap === 'retake';
   const firstTime = !data.profile && data.lifeMaps.length === 0 && data.coachThread.length === 0;
+  if (tab === 'coach' && firstTime && pendingMap && showInfluences && !retake) {
+    return (
+      <Screen>
+        <InfluencesForm
+          initial={data.influences}
+          finishLabel="Start my first session"
+          onCancel={() => setShowInfluences(false)}
+          onDone={(inf) => {
+            setInfluences(inf);
+            addLifeMap(pendingMap);
+            setPendingMap(null);
+            setShowInfluences(false);
+            send("I've filled in my life map.", 'onboarding', pendingMap, inf);
+          }}
+        />
+      </Screen>
+    );
+  }
   if (tab === 'coach' && (retake || firstTime)) {
     const latest = data.lifeMaps.at(-1) ?? null;
     return (
       <Screen>
         <LifeMapForm
           retake={retake && !!latest}
-          initial={retake ? latest : null}
+          initial={retake ? latest : pendingMap}
           previous={retake ? latest : null}
           onCancel={retake ? () => router.setParams({ lifemap: undefined }) : undefined}
           onDone={(map) => {
+            if (firstTime && !retake) {
+              setPendingMap(map);
+              setShowInfluences(true);
+              return;
+            }
             addLifeMap(map);
             if (retake) router.setParams({ lifemap: undefined });
             send(

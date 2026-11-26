@@ -3,6 +3,7 @@ import Anthropic from '@anthropic-ai/sdk';
 import fs from 'node:fs';
 import path from 'node:path';
 
+import { influencesSummary, type Influences } from '@/lib/influences';
 import { lifeMapSummary, playbooksFor, type LifeMap } from '@/lib/life-map';
 
 import { hasGeminiKey, runGemini } from './gemini';
@@ -23,6 +24,7 @@ export interface CoachRequest {
   weekPlan: string;
   lifeMap: LifeMap | null;
   previousLifeMap: LifeMap | null;
+  influences: Influences | null;
 }
 
 export interface CoachResult {
@@ -42,6 +44,13 @@ const APP_CONTEXT = `You are running inside the Eudaimonia prototype app (not a 
 - The app gives you today's habit log below. It is the source of truth: don't ask about habits already logged — respond to them.
 - The user may answer by voice dictation; ignore obvious transcription errors.
 - The user starts in the app's visual life map: they rate every life area 1–10, pick up to 3 focus areas, and say why they downloaded the app. You get the map below. Never ask them to rate areas again or list the areas back to them; use it.
+- The user also rates thinkers, authors, teachers and courses in the app ("Make it yours"), and picks a coaching tone; you get these below. Use them:
+  - Speak their language: when it fits, frame advice through ideas from people they love, credited briefly ("Mel Robbins' 5-second rule fits here"). Put ideas in your own words; no long quotes. Never claim to be, speak as, or be endorsed by any of these people.
+  - Influences change how you frame things, not what you recommend: your method, the playbooks and all safety rules still decide the advice.
+  - Steer away from the style of people they marked "not for me" (e.g. no hype if they dislike Tony Robbins).
+  - Use their chosen tone instead of asking which coaching style they want.
+  - Faith: if they love a religious or spiritual figure, you may draw on that tradition when it helps and in their language. Follow their lead; never preach or tell them what to believe.
+  - If they name someone with harmful views (for example, contempt for women or other groups), don't endorse those views and don't lecture. Engage with what draws them (discipline, strength, ambition, respect) and coach towards that in healthy ways.
 - Keep replies short (usually under 120 words) and end with one question. This is a coaching session on a phone, not an essay.`;
 
 const MODE_NOTES: Record<CoachMode, string> = {
@@ -81,6 +90,7 @@ function contextBlock(req: CoachRequest): string {
   return [
     MODE_NOTES[req.mode],
     req.lifeMap ? lifeMapSummary(req.lifeMap, req.previousLifeMap) : 'Life map: (not taken yet)',
+    req.influences ? influencesSummary(req.influences) : 'Influences: (not set yet)',
     `Today: ${req.today}`,
     `Today's habit log:\n${req.habitLog || '(nothing logged yet)'}`,
     `This week (Monday to Sunday):\n${req.weekPlan || '(nothing planned yet)'}`,

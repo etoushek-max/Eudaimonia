@@ -28,9 +28,10 @@ Restart the server after changing `.env`.
 | Coach | `src/app/coach.tsx` | Chat with the coach, plus a short daily check-in thread. Tap 🎙 to answer by voice: the recording is transcribed (`src/app/api/transcribe+api.ts`, Gemini) into the text box to check before sending. |
 | Week | `src/app/week.tsx`, `src/lib/week.ts` | This week's plan: calendar strip + day-by-day list of habits (on their days) and one-off items. "Plan my week with my coach" fills it; items can be added by hand and sent to the phone calendar. |
 | Life map | `src/components/life-map.tsx`, `src/lib/life-map.ts` | First step of onboarding: rate all 11 life areas 1–10 (wheel fills in), pick up to 3 focus areas, say why now. Retake from the Vision tab; the old map shows as a dashed line. |
+| Make it yours | `src/components/influences-form.tsx`, `src/lib/influences.ts` | After the life map: swipe 20 cards (right = love, left = not for me, up = don't know), add anyone else, pick a coaching tone. Sent to the coach so it speaks the user's language. Edit from the Vision tab. |
 | Area playbooks | `src/coach/playbooks/*.md` | Leading frameworks, questions, habits and limits per coached area. The server loads the ones for the user's focus areas. |
 | Progress | `src/app/progress.tsx` | Vision panels that gain colour as habits are done (never fades), 14-day history per habit, weekly review. |
-| Vision | `src/app/vision.tsx` | Life map wheel and retake, the saved Vision Profile, delete-all-data. |
+| Vision | `src/app/vision.tsx` | Life map wheel and retake, my influences, the saved Vision Profile, delete-all-data. |
 | Data | `src/state/store.tsx` | Everything is stored on the device only (AsyncStorage). |
 
 When the coach outputs a Vision Profile, the app saves it and creates habits from its "Active habits" table automatically.
@@ -45,6 +46,7 @@ When the coach outputs a Vision Profile, the app saves it and creates habits fro
 npx tsx tests/profile.test.ts
 npx tsx tests/life-map.test.ts
 npx tsx tests/week.test.ts
+npx tsx tests/influences.test.ts
 ```
 
 ## Known limits of this prototype

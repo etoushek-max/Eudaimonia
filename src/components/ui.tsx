@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
+import { showDialog } from './dialog';
 import { ThemedText } from './themed-text';
 
 export function Screen({ children, scroll = true }: { children: React.ReactNode; scroll?: boolean }) {
@@ -76,7 +77,7 @@ export function Row({ style, ...props }: ViewProps) {
 /** Yes/no confirmation that works on phones and on the web. */
 export function confirm(title: string, message: string, onYes: () => void) {
   if (Platform.OS === 'web') {
-    if (window.confirm(`${title}\n\n${message}`)) onYes();
+    showDialog({ title, message, onYes });
     return;
   }
   Alert.alert(title, message, [
@@ -86,7 +87,7 @@ export function confirm(title: string, message: string, onYes: () => void) {
 }
 
 export function notify(title: string, message: string) {
-  if (Platform.OS === 'web') window.alert(`${title}\n\n${message}`);
+  if (Platform.OS === 'web') showDialog({ title, message });
   else Alert.alert(title, message);
 }
 

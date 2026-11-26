@@ -1,6 +1,7 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { ApiError as GeminiError } from '@google/genai';
 
+import { parseInfluences } from '@/lib/influences';
 import { parseLifeMap } from '@/lib/life-map';
 import { COACH_MODES, hasCredentials, runCoach, type CoachMode, type CoachRequest } from '@/server/coach';
 
@@ -27,6 +28,8 @@ function parse(body: unknown): CoachRequest | string {
   const lifeMap = b.lifeMap == null ? null : parseLifeMap(b.lifeMap);
   const previousLifeMap = b.previousLifeMap == null ? null : parseLifeMap(b.previousLifeMap);
   if ((b.lifeMap != null && !lifeMap) || (b.previousLifeMap != null && !previousLifeMap)) return 'Invalid life map.';
+  const influences = b.influences == null ? null : parseInfluences(b.influences);
+  if (b.influences != null && !influences) return 'Invalid influences.';
   return {
     mode: b.mode as CoachMode,
     messages: b.messages as CoachRequest['messages'],
@@ -36,6 +39,7 @@ function parse(body: unknown): CoachRequest | string {
     weekPlan: typeof b.weekPlan === 'string' ? b.weekPlan.slice(0, MAX_TEXT) : '',
     lifeMap,
     previousLifeMap,
+    influences,
   };
 }
 

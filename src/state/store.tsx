@@ -2,6 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 
 import { dateKey } from '@/lib/dates';
+import type { Influences } from '@/lib/influences';
 import type { LifeMap } from '@/lib/life-map';
 import type { PlanItem } from '@/lib/week';
 import { parseHabits } from '@/lib/profile';
@@ -19,6 +20,7 @@ interface Store {
   setCoachThread: (messages: ChatMessage[]) => void;
   setCheckin: (day: string, messages: ChatMessage[]) => void;
   addLifeMap: (map: LifeMap) => void;
+  setInfluences: (influences: Influences) => void;
   setWeekPlan: (items: Omit<PlanItem, 'id' | 'done'>[]) => void;
   addPlanItem: (item: Omit<PlanItem, 'id' | 'done'>) => void;
   togglePlanItem: (id: string) => void;
@@ -98,6 +100,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     (day: string, messages: ChatMessage[]) => setData((d) => ({ ...d, checkins: { ...d.checkins, [day]: messages } })),
     [],
   );
+  const setInfluences = useCallback((influences: Influences) => setData((d) => ({ ...d, influences })), []);
   const addLifeMap = useCallback((map: LifeMap) => setData((d) => ({ ...d, lifeMaps: [...d.lifeMaps, map] })), []);
   // A new plan from the coach replaces unfinished items in the days it covers; done items stay.
   const setWeekPlan = useCallback(
@@ -147,6 +150,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       setCoachThread,
       setCheckin,
       addLifeMap,
+      setInfluences,
       setWeekPlan,
       addPlanItem,
       togglePlanItem,
@@ -163,6 +167,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       setCoachThread,
       setCheckin,
       addLifeMap,
+      setInfluences,
       setWeekPlan,
       addPlanItem,
       togglePlanItem,

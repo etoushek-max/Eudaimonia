@@ -90,6 +90,23 @@ The coach receives the map and opens the first session from it (reflecting one p
 
 **Re-measure:** the user can retake the life map any time (prompted roughly monthly). The wheel shows the previous map as an outline, and the coach reflects on what changed. This is a progress measure beyond streaks, alongside the periodic well-being check.
 
+## Make it yours (influences)
+
+David's idea (2026-11-25): people already learn from someone, so the coach should speak their language. Straight after the life map, onboarding shows swipe cards of well-known thinkers, authors, teachers and courses (e.g. *Atomic Habits*, Mel Robbins, Brené Brown, the Stoics, Jesus, the Buddha, GTD, Landmark). Swipe right = love, left = not for me, up = don't know them. Then "Anyone else who's shaped you?" (free text or voice) and a coaching tone (gentle / balanced / straight-talking), suggested from the swipes. Editable any time from the Vision tab.
+
+How the coach uses it:
+
+- **Speaks their language.** Frames advice through ideas from people they love, credited briefly ("Mel Robbins' 5-second rule fits here"), in its own words.
+- **Frames, never overrides.** Influences change how advice is framed, not what is recommended: the method, playbooks and safety rules still decide.
+- **Avoids what they dislike.** Steers away from the style of people marked "not for me" (no hype for someone who dislikes Tony Robbins).
+- **Faith follows their lead.** If they love a religious or spiritual figure, the coach may draw on that tradition in their language; it never preaches or tells them what to believe.
+
+Rules:
+
+- Never impersonate, speak as, or imply endorsement by any real person. Cards use symbols and colours, not photos of real people.
+- Figures known for harmful views (e.g. contempt for women or other groups) are not offered as cards. If a user types one in, the coach doesn't endorse those views or lecture; it engages with what draws them (discipline, strength, ambition, respect) and coaches towards that in healthy ways.
+- Before launch, check card names and descriptions with a lawyer (name use, trademarks such as course names).
+
 ## Area playbooks
 
 Each area coach is a **playbook**: a file with the leading frameworks for that area, its interview questions, its go-to techniques and habits, and its limits (when to refer out). The meta coach loads only the playbooks for the user's focus areas. Adding an area = writing and testing a playbook, not rebuilding the app.
@@ -104,7 +121,7 @@ Each area coach is a **playbook**: a file with the leading frameworks for that a
 | Mental health | Positive psychology (Seligman, PERMA); behavioural activation; ACT (Hayes) | Coaching for well-being, never therapy or diagnosis | Roadmap |
 | Career | *Designing Your Life* (Burnett & Evans); *So Good They Can't Ignore You* (Newport); career capital (80,000 Hours) | — | Roadmap |
 | Money | Conscious spending (Ramit Sethi); Bogleheads principles; behavioural finance | Education and habits only — never personal investment advice | Roadmap |
-| Purpose & spirituality | Aristotle and the Stoics; values work (ACT); Frankl | Respect all beliefs; no religious direction | Roadmap |
+| Purpose & spirituality | Aristotle and the Stoics; values work (ACT); Frankl | Respect all beliefs; draw on a faith only when the user loves it (see Make it yours), never preach | Roadmap |
 | Other areas | Playbooks written as each area is added | — | Roadmap |
 
 **Quality:** each playbook gets a small test set of example conversations, used to check the coach actually applies its frameworks rather than generic advice (dspy.ts, see Technology). Before launch, have the playbooks reviewed by practising coaches in each area.
@@ -232,6 +249,8 @@ Drawn from established research and philosophy:
 - 2026-11-24 — Technology: Postgres/pgvector foundation; dspy.ts for coach quality; AgentDB/RuVector piloted as swappable memory; Ruflo for dev only; MidStream evaluated in phase 2.
 - 2026-11-25 — Prototype coach temporarily runs on a free Gemini key (Google AI Studio); Claude when a Claude key is set. Free tier: test with made-up details only.
 - 2026-11-25 — "Not just a chatbot" principle, visual life map onboarding (assess all areas, coach a few) and evidence-based area playbooks adopted (David's prototype feedback).
+
+- 2026-11-25 — "Make it yours": influences swipe cards after the life map, coaching tone, and coach rules (credit ideas, never impersonate, influences frame but don't override, faith follows the user's lead) adopted (David's idea).
 
 ## Open decisions
 

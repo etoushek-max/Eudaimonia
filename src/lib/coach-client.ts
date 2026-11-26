@@ -1,4 +1,5 @@
 import { prettyDate } from './dates';
+import type { Influences } from './influences';
 import type { LifeMap } from './life-map';
 import type { ChatMessage } from './types';
 
@@ -21,6 +22,7 @@ export async function askCoach(args: {
   weekPlan: string;
   lifeMap: LifeMap | null;
   previousLifeMap: LifeMap | null;
+  influences: Influences | null;
 }): Promise<CoachReply> {
   const res = await fetch('/api/coach', {
     method: 'POST',

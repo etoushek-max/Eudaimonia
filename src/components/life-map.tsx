@@ -232,7 +232,7 @@ export function LifeMapForm({
           </View>
           <Row>
             <Button label="Back" kind="secondary" onPress={() => setStep('focus')} />
-            <Button label={retake ? 'Save and talk to my coach' : 'Start my first session'} onPress={finish} />
+            <Button label={retake ? 'Save and talk to my coach' : 'Next'} onPress={finish} />
           </Row>
         </>
       )}

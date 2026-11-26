@@ -1,5 +1,6 @@
 import type Anthropic from '@anthropic-ai/sdk';
 
+import type { Influences } from './influences';
 import type { LifeMap } from './life-map';
 import type { PlanItem } from './week';
 
@@ -41,6 +42,8 @@ export interface AppData {
   lifeMaps: LifeMap[];
   /** One-off plan items for the week (from the coach's weekly plan or added by hand). */
   plan: PlanItem[];
+  /** "Make it yours": who they love, dislike and learn from, plus preferred tone. */
+  influences: Influences | null;
 }
 
 export const EMPTY_DATA: AppData = {
@@ -52,4 +55,5 @@ export const EMPTY_DATA: AppData = {
   checkins: {},
   lifeMaps: [],
   plan: [],
+  influences: null,
 };
